@@ -1,0 +1,959 @@
+Apply point processing operations on an image and discuss its effect:  
+Negation and Flipping. 
+--------------------------------------------------------------------------
+
+# Equation of Negation=255-image
+neg_img=255-image
+
+#Flipping
+horizontal_flip=cv2.flip(image,1)
+Vertical_flip=cv2.flip(image,0)
+
+===========================================================================
+
+Apply point processing operations on an image and discuss its effect:  
+Log Transform 
+---------------------------------------------------------------------------
+
+# Equation of Log Transformation=c*log(1+r)
+log_img=np.log1p(image)
+
+# Equation of Power Log Transformation=c(r^gamma)
+for i in range(4):
+  gamma=0.5*i
+  plt.subplot(2,2,i+1)
+  plt.imshow(np.power(image,gamma),cmap="gray")
+  plt.title('Power Log Transformation Image')
+  plt.axis("off")
+plt.show()
+
+=============================================================================
+Demonstrate piecewise linear transformations on an image: Contrast stretching
+-----------------------------------------------------------------------------
+original_contrast_img=cv2.imread("/content/contrast.bmp",1)
+original_contrast_img2=cv2.imread("/content/contrast.bmp",0)
+
+min_val=np.min(original_contrast_img)
+max_val=np.max(original_contrast_img)
+print(min_val, max_val)
+
+contrast_img = original_contrast_img2.copy()
+
+contrast_matrix=np.array(contrast_img)
+
+rows,col=contrast_matrix.shape
+
+r1,r2=91,136
+s1,s2=10,245
+
+for i in range(rows):
+  for j in range(col):
+
+    r=original_contrast_img2[i][j]
+
+    if r<=r1:
+      contrast_img[i][j]=(s1/r1)*r
+
+    elif r<=r2:
+      contrast_img[i][j]=((s2-s1)/(r2-r1))*(r - r1)+s1
+
+    else:
+      contrast_img[i][j]=((255-s2)/(255-r2))*(r-r2)+s2
+
+
+plt.subplot(2,2,1)
+plt.imshow(original_contrast_img, cmap='gray')
+plt.title("Original Image")
+plt.axis('off')
+
+
+plt.subplot(2,2,2)
+plt.imshow(contrast_img, cmap='gray')
+plt.title("Contrast Stretching")
+plt.axis('off')
+
+plt.subplot(2,2,3)
+plt.hist(original_contrast_img.ravel(),bins=256,range=(0,256))
+plt.title("Original Image Histogram")
+plt.axis('off')
+
+plt.subplot(2,2,4)
+plt.hist(contrast_img.ravel(),bins=256,range=(0,256))
+plt.title("Contrast Stretching Histogram")
+plt.axis('off')
+plt.show()
+
+==============================================================================
+Demonstrate piecewise linear transformations on an image: Gray level slicing 
+-------------------------------------------------------------------------------
+
+gray_img=cv2.imread("/content/gray_level_slicing.bmp",0)
+
+upper=220
+lower=125
+
+wbg_img=gray_img.copy()
+nbg_img=gray_img.copy()
+
+rows,col=gray_img.shape
+
+for i in range(rows):
+  for j in range(col):
+
+    if lower<= gray_img[i][j] <=upper:
+      nbg_img[i][j]=255
+    else:
+      nbg_img[i][j]=0
+
+    if lower<= gray_img[i][j] <=upper:
+      wbg_img[i][j]=255
+    else:
+      wbg_img[i][j]=gray_img[i][j]
+
+plt.subplot(1,3,1)
+plt.imshow(gray_img,cmap="gray")
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,3,2)
+plt.imshow(wbg_img,cmap="gray")
+plt.title("With Background")
+plt.axis("off")
+
+plt.subplot(1,3,3)
+plt.imshow(nbg_img,cmap="gray")
+plt.title("Without Background")
+plt.axis("off")
+plt.show()
+
+==============================================================================
+Demonstrate piecewise linear transformations on an image:  Bit Plane slicing. 
+
+-------------------------------------------------------------------------------
+original_bit_img=cv2.imread("/content/bit_plane_slicing.bmp",0)
+
+bit_matrix=np.array(original_bit_img)
+rows,col=bit_matrix.shape
+
+for k in range(8):
+
+  bit_img=original_bit_img.copy()
+
+  for i in range(rows):
+    for j in range(col):
+
+      pixel=original_bit_img[i][j]
+
+      bit=(pixel>>k) & 1
+
+      bit_img[i][j] = 255 if bit == 1 else 0
+
+  plt.subplot(2,4,k+1)
+  plt.imshow(bit_img, cmap='gray')
+  plt.title(f'Bit {k}')
+  plt.axis('off')
+
+
+plt.show()
+
+=============================================================================
+Analyze the effect of histogram on low contrast, high contrast, dark and light images.  
+Apply histogram equalization on low contrast image and comment about the result. 
+------------------------------------------------------------------------------------
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab.patches import cv2_imshow
+
+dark=cv2.imread("/content/Dark.bmp",1)
+
+plt.subplot(1,2,1)
+plt.imshow(dark,cmap='gray')
+plt.title("Dark Image")
+plt.axis('off')
+
+plt.subplot(1,2,2)
+plt.hist(dark.ravel(), bins=256, range=(0,256))
+plt.title("Histogram")
+
+plt.show()
+
+
+bright=cv2.imread("/content/Bright.bmp",1)
+
+plt.subplot(1,2,1)
+plt.imshow(bright,cmap='gray')
+plt.title("bright Image")
+plt.axis('off')
+
+plt.subplot(1,2,2)
+plt.hist(bright.ravel(), bins=256, range=(0,256))
+plt.title("Histogram")
+
+plt.show()
+
+Low=cv2.imread("/content/Low.bmp",1)
+
+plt.subplot(1,2,1)
+plt.imshow(Low,cmap='gray')
+plt.title("Low Contrast Image")
+plt.axis('off')
+
+plt.subplot(1,2,2)
+plt.hist(Low.ravel(), bins=256, range=(0,256))
+plt.title("Histogram")
+
+plt.show()
+
+High=cv2.imread("/content/High.bmp",1)
+
+plt.subplot(1,2,1)
+plt.imshow(High,cmap='gray')
+plt.title("High Contrast Image")
+plt.axis('off')
+
+plt.subplot(1,2,2)
+plt.hist(High.ravel(), bins=256, range=(0,256))
+plt.title("Histogram")
+
+plt.show()
+
+
+#Equalization
+
+uneql_hist=cv2.imread("/content/Low.bmp",1)
+hist=cv2.imread("/content/Low.bmp",0)
+
+eq_hist=cv2.equalizeHist(hist)
+
+unequal_hist=cv2.calcHist([uneql_hist],[0],None,[256],[0,256])
+equal_hist=cv2.calcHist([eq_hist],[0],None,[256],[0,256])
+
+plt.subplot(2,2,1)
+plt.imshow(uneql_hist,cmap='gray')
+plt.title("Unequalized Image")
+plt.axis('off')
+
+plt.subplot(2,2,2)
+plt.imshow(eq_hist,cmap='gray')
+plt.title("Equalized Image")
+plt.axis('off')
+
+plt.subplot(2,2,3)
+plt.plot(unequal_hist)
+plt.title("Unequalized Histogram")
+
+plt.subplot(2,2,4)
+plt.plot(equal_hist)
+plt.title("Equalized Histogram")
+=======================================================================================
+Apply  following  smoothing  spatial  filters  on  a  given  image  and  compare  the  
+performance. Box Filter. 
+---------------------------------------------------------------------------------------
+
+original_image=cv2.imread("/content/cameraman.bmp",1)
+original=cv2.imread("/content/cameraman.bmp",0)
+
+padded = np.pad(original, ((1,1),(1,1)), mode='constant').astype(float)
+
+output = np.zeros_like(original, dtype=float)
+
+rows,cols=original.shape
+
+for i in range(rows):
+  for j in range(cols):
+    s=0;
+    for k in range(3):
+            for l in range(3):
+              s=s+padded[i+k][j+l]
+    s=s/9
+    output[i][j]=s
+
+output = np.uint8(output)
+
+plt.subplot(1,2,1)
+plt.imshow(original_image,cmap='gray')
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(output,cmap='gray')
+plt.title("Avrage Filter Output")
+plt.axis("off")
+
+plt.show()
+
+========================================================================================
+Apply  following  smoothing  spatial  filters  on  a  given  image  and  compare  the  
+performance: Weighted Filter 
+-----------------------------------------------------------------------------------------
+
+mask=[[1,2,1],[2,4,2],[1,2,1]]
+
+padded= np.pad(original,((1,1),(1,1)),mode='constant').astype(float)
+
+output=np.zeros_like(original,dtype='float')
+
+rows,cols = original.shape
+
+for i in range(rows):
+  for j in range(cols):
+
+    s=0;
+
+    for k in range(3):
+            for l in range(3):
+                s=s+padded[i+k][j+l]*mask[k][l]
+
+    output[i][j]=s/16
+
+output=np.uint8(output)
+
+plt.subplot(1,2,1)
+plt.imshow(original_image,cmap='gray')
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(output,cmap='gray')
+plt.title("Weighted Filter Output")
+plt.axis("off")
+
+plt.show()
+
+====================================================================================================
+
+Apply  following  smoothing  spatial  filters  on  a  given  image  and  compare  the  
+performance: Median Filte 
+------------------------------------------------------------------------------------------------------
+
+output = original.copy()
+
+padded= np.pad(original,((1,1),(1,1)),mode='constant').astype(float)
+
+rows, cols = original.shape
+
+for i in range(rows):
+  for j in range(cols):
+    arr=[]
+
+    for k in range(3):
+      for l in range(3):
+        arr.append(padded[i+k][j+l])
+
+    arr.sort()
+    output[i][j]=arr[4]
+
+plt.subplot(1,2,1)
+plt.imshow(original, cmap='gray')
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(output, cmap='gray')
+plt.title("Median Filter Output")
+plt.axis("off")
+
+plt.show()
+=============================================================================================
+
+11. Illustrate the following Segmentation operations on gray image: Point Detection. 
+---------------------------------------------------------------------------------------------
+original_image=cv2.imread("/content/Point_Detection.bmp",1)
+original=cv2.imread("/content/Point_Detection.bmp",0)
+
+padded=np.pad(original,((1,1),(1,1)),mode='constant').astype(float)
+output=np.zeros_like(original,dtype='float')
+
+rows,cols=original.shape
+
+mask=[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]
+
+T=125
+
+for i in range(rows):
+  for j in range(cols):
+    s=0
+    for k in range(3):
+      for l in range(3):
+        s=s+padded[i+k][j+l]*mask[k][l]
+
+    if(abs(s)>T):
+      output[i][j]=255
+    else:
+      output[i][j]=0
+
+plt.subplot(1,2,1)
+plt.imshow(original_image,cmap='gray')
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(output,cmap='gray')
+plt.title("Point Detection Output")
+plt.axis("off")
+
+plt.show()
+======================================================================================
+12. Illustrate the following Segmentation operations on gray image: Line Detection 
+---------------------------------------------------------------------------------------
+original_image=cv2.imread("/content/Point_Detection.bmp",1)
+original=cv2.imread("/content/Point_Detection.bmp",0)
+
+padded=np.pad(original,((1,1),(1,1)),mode='constant').astype(float)
+output=np.zeros_like(original,dtype='float')
+
+rows,cols=original.shape
+
+mask=[[-1,-1,-1],[2,2,2],[-1,-1,-1]]
+
+T=125
+
+for i in range(rows):
+  for j in range(cols):
+    s=0
+    for k in range(3):
+      for l in range(3):
+        s=s+padded[i+k][j+l]*mask[k][l]
+
+    if(abs(s)>T):
+      output[i][j]=255
+    else:
+      output[i][j]=0
+
+plt.subplot(1,2,1)
+plt.imshow(original_image,cmap='gray')
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(output,cmap='gray')
+plt.title("Point Detection Output")
+plt.axis("off")
+
+plt.show()
+=================================================================================
+Illustrate the following Segmentation operations on gray image: Thresolding 
+-----------------------------------------------------------------------------------
+
+  Global Thresholding
+
+original_image=cv2.imread("/content/int_slicing2.bmp",1)
+original=cv2.imread("/content/int_slicing2.bmp",0)
+
+original_hist=cv2.calcHist([original],[0],None,[256],[0,256])
+
+T=238
+
+rows, cols = original.shape
+
+output = np.zeros_like(original)
+output_hist=cv2.calcHist([output],[0],None,[256],[0,256])
+
+for i in range(rows):
+    for j in range(cols):
+        if original[i][j] > T:
+            output[i][j] = 255
+        else:
+            output[i][j] = 0
+
+plt.subplot(2,2,1)
+plt.imshow(original, cmap='gray')
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(2,2,2)
+plt.imshow(output, cmap='gray')
+plt.title("Global Thresholding")
+plt.axis("off")
+
+plt.subplot(2,2,3)
+plt.plot(original_hist)
+plt.title("Original Histogram")
+plt.axis("off")
+
+plt.subplot(2,2,4)
+plt.plot(output_hist)
+plt.title("Global Thresholding Histogram")
+plt.axis("off")
+
+plt.show()
+
+=============================================================================================
+Evaluate  the  Different  Edge  detection  Masks  (Sobel/  Prewitt  /Roberts)  on  given image
+----------------------------------------------------------------------------------------------
+
+#Edge Detection(Roberts)
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab.patches import cv2_imshow
+
+original=cv2.imread("/content/Edge_detectn.bmp",0)
+
+kernal_x=[[-1,0],[0,1]]
+kernal_y=[[0,-1],[1,0]]
+
+padded=np.pad(original,((0,1),(0,1)),mode='constant').astype(float)
+
+gx_img=np.zeros_like(original,dtype=float)
+gy_img=np.zeros_like(original,dtype=float)
+output=np.zeros_like(original,dtype=float)
+
+rows,cols=original.shape
+
+for i in range(rows):
+  for j in range(cols):
+    gx=0
+    gy=0
+
+    for k in range(2):
+      for l in range(2):
+        gx=gx+padded[i+k][j+l]*kernal_x[k][l]
+        gy=gy+padded[i+k][j+l]*kernal_y[k][l]
+
+    gx_img[i][j]=min(255,abs(gx))
+    gy_img[i][j]=min(255,abs(gy))
+    output[i][j]=min(255,abs(gx)+abs(gy))
+
+plt.subplot(2,2,1)
+plt.imshow(original,cmap='gray')
+plt.title("Original")
+plt.axis('off')
+
+plt.subplot(2,2,2)
+plt.imshow(gx_img,cmap='gray')
+plt.title("Gx")
+plt.axis('off')
+
+plt.subplot(2,2,3)
+plt.imshow(gy_img,cmap='gray')
+plt.title("Gy")
+plt.axis('off')
+
+plt.subplot(2,2,4)
+plt.imshow(output,cmap='gray')
+plt.title("Gx + Gy")
+plt.axis('off')
+
+plt.show()
+
+
+
+
+
+
+#Prewitt Edge Detection
+
+kernal_x=[[-1,0,1],[-1,0,1],[-1,0,1]]
+kernal_y=[[-1,-1,-1],[0,0,0],[1,1,1]]
+
+rows,cols=original.shape
+
+padded=np.pad(original,((1,1),(1,1)),mode='constant').astype(float)
+
+gx_img=np.zeros_like(original,dtype=float)
+gy_img=np.zeros_like(original,dtype=float)
+output=np.zeros_like(original,dtype=float)
+
+for i in range(rows):
+  for j in range(cols):
+    gx=0
+    gy=0
+
+    for k in range(3):
+      for l in range(3):
+        gx=gx+padded[i+k][j+l]*kernal_x[k][l]
+        gy=gy+padded[i+k][j+l]*kernal_y[k][l]
+
+    gx_img[i][j]=min(abs(gx),255)
+    gy_img[i][j]=min(abs(gy),255)
+    output[i][j]=min(abs(gx)+abs(gy),255)
+
+
+plt.subplot(2,2,1)
+plt.imshow(original, cmap='gray')
+plt.title("Original")
+plt.axis('off')
+
+plt.subplot(2,2,2)
+plt.imshow(gx_img, cmap='gray')
+plt.title("Gx")
+plt.axis('off')
+
+plt.subplot(2,2,3)
+plt.imshow(gy_img, cmap='gray')
+plt.title("Gy")
+plt.axis('off')
+
+plt.subplot(2,2,4)
+plt.imshow(output, cmap='gray')
+plt.title("Gx + Gy")
+plt.axis('off')
+
+plt.show()
+
+
+
+
+
+#Sobel Edge Detection
+
+kernal_x=[[-1,0,1],[-2,0,2],[-1,0,1]]
+kernal_y=[[-1,-2,-1],[0,0,0],[1,2,1]]
+
+rows,cols=original.shape
+
+padded=np.pad(original,((1,1),(1,1)),mode='constant').astype(float)
+
+gx_img=np.zeros_like(original,dtype=float)
+gy_img=np.zeros_like(original,dtype=float)
+output=np.zeros_like(original,dtype=float)
+
+for i in range(rows):
+  for j in range(cols):
+    gx=0
+    gy=0
+
+    for k in range(3):
+      for l in range(3):
+        gx=gx+padded[i+k][j+l]*kernal_x[k][l]
+        gy=gy+padded[i+k][j+l]*kernal_y[k][l]
+
+    gx_img[i][j]=min(abs(gx),255)
+    gy_img[i][j]=min(abs(gy),255)
+    output[i][j]=min(abs(gx)+abs(gy),255)
+
+
+plt.subplot(2,2,1)
+plt.imshow(original, cmap='gray')
+plt.title("Original")
+plt.axis('off')
+
+plt.subplot(2,2,2)
+plt.imshow(gx_img, cmap='gray')
+plt.title("Gx")
+plt.axis('off')
+
+plt.subplot(2,2,3)
+plt.imshow(gy_img, cmap='gray')
+plt.title("Gy")
+plt.axis('off')
+
+plt.subplot(2,2,4)
+plt.imshow(output, cmap='gray')
+plt.title("Gx + Gy")
+plt.axis('off')
+
+plt.show()
+
+==============================================================================================
+Perform Image compression using Discrete Cosine Transform (DCT)
+---------------------------------------------------------------------------------------------
+
+-import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+img = cv2.imread('/content/cameraman.bmp',0)
+
+img = np.float32(img)
+
+dct = cv2.dct(img)
+
+idct = cv2.idct(dct)
+
+plt.subplot(1,3,1)
+plt.imshow(img, cmap='gray')
+plt.title("Original Image")
+plt.axis("off")
+
+plt.subplot(1,3,2)
+plt.imshow(np.log(1+abs(dct)), cmap='gray')   # log for better visibility
+plt.title("DCT Image")
+plt.axis("off")
+
+plt.subplot(1,3,3)
+plt.imshow(idct, cmap='gray')
+plt.title("Reconstructed Image")
+plt.axis("off")
+
+plt.show()
+
+# Define 8×8 block (given values)
+I = [
+[154,123,123,123,123,123,123,136],
+[192,180,136,154,154,154,136,110],
+[254,198,154,154,180,154,123,123],
+[239,180,136,180,180,166,123,123],
+[180,154,136,167,166,149,136,136],
+[128,136,123,136,154,180,198,154],
+[123,105,110,149,136,136,180,166],
+[110,136,123,123,123,136,154,136]
+]
+
+# Subtract 128 (center pixel values around zero)
+M = I - 128
+
+# Create empty DCT transform matrix
+T = np.zeros((8,8))
+
+# Fill DCT matrix using formula
+for i in range(8):
+    for j in range(8):
+        if i == 0:
+            T[i,j] = np.sqrt(1/8)   # first row formula
+        else:
+            T[i,j] = np.sqrt(2/8) * np.cos(((2*j+1)*i*np.pi)/16)
+
+# Apply DCT (frequency transform)
+D = T @ M @ T.T
+
+# Define quantization matrix (compression matrix)
+Q =[
+[16,11,10,16,24,40,51,61],
+[12,12,14,19,26,58,60,55],
+[14,13,16,24,40,57,69,56],
+[14,17,22,29,51,87,80,62],
+[18,22,37,56,68,109,103,77],
+[24,35,55,64,81,104,113,92],
+[49,64,78,87,103,121,120,101],
+[72,92,95,98,112,100,103,99]
+]
+
+# Quantization (compression step)
+C = np.round(D / Q)
+
+# Dequantization (reverse compression)
+R = C * Q
+
+# Apply inverse DCT (reconstruct block)
+N = np.round(T.T @ R @ T + 128)
+
+print("Original Matrix:\n", I)
+print("\nAfter Subtract 128 (M):\n", M)
+print("\nDCT Matrix (D):\n", D)
+print("\nQuantized Matrix (C):\n", C)
+print("\nReconstructed Matrix (N):\n", N)
+=======================================================================================
+Apply Huffman coding algorithm for image compression
+---------------------------------------------------------------------------------------
+
+# Huffman Coding Using Given Characters and Frequencies
+
+import heapq
+
+# Step 1: Input (manual)
+chars = ['a','b','c','d','e','f']
+freq  = [5,9,12,13,16,45]
+
+# Step 2: Create list [freq, symbol]
+nodes = []
+for i in range(len(chars)):
+    nodes.append([freq[i], chars[i]])
+
+# Step 3: Build tree (combine smallest)
+while len(nodes) > 1:
+    nodes = sorted(nodes, key=lambda x: x[0])   # sort by freq
+
+    left = nodes[0]
+    right = nodes[1]
+
+    # combine two smallest
+    new_node = [left[0] + right[0], left[1] + right[1]]
+
+    nodes = nodes[2:]
+    nodes.append(new_node)
+
+# Step 4: Assign codes (simple automatic)
+sorted_data = sorted(zip(chars, freq), key=lambda x: x[1], reverse=True)
+
+codes = {}
+code = ""
+
+for i in range(len(sorted_data)):
+    ch = sorted_data[i][0]
+    codes[ch] = code if code != "" else "0"
+    code = code + "1"
+
+# Step 5: Print codes
+print("\nHuffman Codes:")
+for k in codes:
+    print(k, "=", codes[k])
+
+# Step 6: Compression calculation
+total = sum(freq)
+
+original_bits = total * 8
+
+compressed_bits = 0
+for i in range(len(chars)):
+    compressed_bits += freq[i] * len(codes[chars[i]])
+
+ratio = original_bits / compressed_bits
+
+print("\nCompression Ratio:", round(ratio,2))
+
+import cv2
+import numpy as np
+import heapq
+import matplotlib.pyplot as plt
+
+# -------------------------------
+# STEP 1: Read image
+# -------------------------------
+img = cv2.imread("/content/cameraman.bmp", 0)
+
+rows, cols = img.shape
+
+# -------------------------------
+# STEP 2: Frequency using ARRAY
+# -------------------------------
+freq = np.zeros(256, dtype=int)
+
+for i in range(rows):
+    for j in range(cols):
+        pixel = img[i][j]
+        freq[pixel] = freq[pixel] + 1
+
+# -------------------------------
+# STEP 3: Create heap
+# -------------------------------
+heap = []
+
+for pixel in range(256):
+    if freq[pixel] > 0:
+        node = [] #pair
+
+        node.append(freq[pixel])          # frequency
+        node.append([[pixel, ""]])        # pixel + code
+        heap.append(node)
+
+heapq.heapify(heap)
+
+# -------------------------------
+# STEP 4: Build Huffman Tree
+# -------------------------------
+while len(heap) > 1:
+
+    left = heapq.heappop(heap)
+    right = heapq.heappop(heap)
+
+    # Assign 0 to left
+    for item in left[1]:
+        item[1] = "0" + item[1]
+
+    # Assign 1 to right
+    for item in right[1]:
+        item[1] = "1" + item[1]
+
+    # Combine nodes
+    new_freq = left[0] + right[0]
+
+    new_node = []
+    new_node.append(new_freq)
+    new_node.append(left[1] + right[1])
+
+    heapq.heappush(heap, new_node)
+
+# -------------------------------
+# STEP 5: Generate codes
+# -------------------------------
+codes = {}
+
+for item in heap[0][1]:
+    pixel_value = item[0]
+    code_value = item[1]
+    codes[pixel_value] = code_value
+
+# -------------------------------
+# STEP 6: Encode image
+# -------------------------------
+encoded_bits = ""
+
+for i in range(rows):
+    for j in range(cols):
+        pixel = img[i][j]
+        encoded_bits = encoded_bits + codes[pixel]
+
+# -------------------------------
+# STEP 7: Convert bits → bytes
+# -------------------------------
+length_bits = len(encoded_bits)
+
+extra_bits = 8 - (length_bits % 8)
+
+for i in range(extra_bits):
+    encoded_bits = encoded_bits + "0"
+
+encoded_bytes = bytearray()
+
+for i in range(0, len(encoded_bits), 8):
+    byte = encoded_bits[i:i+8]
+    value = int(byte, 2)
+    encoded_bytes.append(value)
+
+# Save compressed file
+file = open("compressed.bin", "wb")
+file.write(encoded_bytes)
+file.close()
+
+# -------------------------------
+# STEP 8: Read file
+# -------------------------------
+file = open("compressed.bin", "rb")
+data = file.read()
+file.close()
+
+# Convert bytes → bits
+bits = ""
+
+for byte in data:
+    binary = format(byte, '08b')
+    bits = bits + binary
+
+# -------------------------------
+# STEP 9: Decode
+# -------------------------------
+reverse = {}
+
+for key in codes:
+    value = codes[key]
+    reverse[value] = key
+
+decoded = []
+temp = ""
+
+for bit in bits:
+    temp = temp + bit
+
+    if temp in reverse:
+        pixel_value = reverse[temp]
+        decoded.append(pixel_value)
+        temp = ""
+
+# Remove extra bits
+decoded = decoded[0:rows * cols]
+
+# -------------------------------
+# STEP 10: Reconstruct image
+# -------------------------------
+decoded_array = np.array(decoded, dtype=np.uint8)
+decoded_img = decoded_array.reshape(rows, cols)
+
+# -------------------------------
+# STEP 11: Display
+# -------------------------------
+plt.subplot(1,2,1)
+plt.imshow(img, cmap='gray')
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(decoded_img, cmap='gray')
+plt.title("Decoded")
+plt.axis("off")
+
+plt.show()
