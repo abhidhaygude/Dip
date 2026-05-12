@@ -1,0 +1,1455 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIP Lab — Digital Image Processing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=Syne:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #13171e;
+    --surface2: #1a1f29;
+    --border: #252c3a;
+    --accent: #f59e0b;
+    --accent2: #38bdf8;
+    --accent3: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0a0c10;
+    --green: #4ade80;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,18,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-badge {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .btn-download {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-download:hover {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn-back {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-back:hover { color: var(--text); border-color: var(--text); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 5rem 2rem 3.5rem;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero p {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  /* ── EXPERIMENT GRID ── */
+  #home-view {
+    position: relative;
+    z-index: 1;
+  }
+
+  .exp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5px;
+    padding: 0 0 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+    gap: 1.25rem;
+  }
+
+  .exp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.75rem;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .exp-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0% 0%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .exp-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(245,158,11,0.1);
+  }
+
+  .exp-card:hover::before { opacity: 1; }
+
+  .exp-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .exp-num::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .exp-card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    line-height: 1.35;
+  }
+
+  .exp-card p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .exp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 1.1rem;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent2);
+    border: 1px solid rgba(56,189,248,0.3);
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.05em;
+  }
+
+  .exp-arrow {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 1rem;
+    color: var(--border);
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .exp-card:hover .exp-arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
+  }
+
+  /* ── DETAIL VIEW ── */
+  #detail-view {
+    display: none;
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 5rem;
+  }
+
+  .detail-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 0.6rem;
+  }
+
+  .detail-header h2 {
+    font-size: clamp(1.6rem, 4vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  .detail-header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    font-weight: 400;
+    max-width: 680px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .theory-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    line-height: 1.8;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    font-weight: 400;
+  }
+
+  .theory-block p { margin-bottom: 0.8rem; }
+  .theory-block p:last-child { margin-bottom: 0; }
+
+  .theory-block ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .theory-block li { margin-bottom: 0.4rem; }
+
+  .math-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent);
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+
+  .highlight { color: var(--accent2); }
+  .highlight-green { color: var(--green); }
+  .highlight-purple { color: var(--accent3); }
+
+  /* ── CODE BLOCK ── */
+  .code-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .code-header {
+    background: var(--surface2);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .code-copy {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: color 0.2s;
+  }
+
+  .code-copy:hover { color: var(--accent); }
+
+  pre {
+    background: var(--code-bg);
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin: 0;
+  }
+
+  code {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.75;
+    color: #a8b2c8;
+  }
+
+  /* Syntax */
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .num { color: #f78c6c; }
+  .cm { color: #546e7a; font-style: italic; }
+  .op { color: #89ddff; }
+
+  /* ── SUBSECTION TABS ── */
+  .sub-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .sub-tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: none;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .sub-tab.active, .sub-tab:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(245,158,11,0.06);
+  }
+
+  .sub-content { display: none; }
+  .sub-content.active { display: block; }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    margin-top: 0.75rem;
+  }
+
+  .data-table th {
+    background: var(--surface2);
+    color: var(--accent);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border: 1px solid var(--border);
+    letter-spacing: 0.05em;
+  }
+
+  .data-table td {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--border);
+    color: #94a3b8;
+  }
+
+  .data-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .exp-card {
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .exp-card:nth-child(1) { animation-delay: 0.05s; }
+  .exp-card:nth-child(2) { animation-delay: 0.1s; }
+  .exp-card:nth-child(3) { animation-delay: 0.15s; }
+  .exp-card:nth-child(4) { animation-delay: 0.2s; }
+  .exp-card:nth-child(5) { animation-delay: 0.25s; }
+  .exp-card:nth-child(6) { animation-delay: 0.3s; }
+  .exp-card:nth-child(7) { animation-delay: 0.35s; }
+  .exp-card:nth-child(8) { animation-delay: 0.4s; }
+  .exp-card:nth-child(9) { animation-delay: 0.45s; }
+
+  .detail-animate { animation: fadeIn 0.35s ease both; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .exp-grid { grid-template-columns: 1fr; padding: 0 1rem 4rem; }
+    .hero { padding: 3rem 1rem 2rem; }
+    #detail-view { padding: 1.5rem 1rem 4rem; }
+    header { padding: 0 1rem; }
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#" onclick="showHome()">
+    <span class="logo-badge">DIP</span>
+    <span class="logo-text">Lab Experiments</span>
+  </a>
+  <div class="header-right">
+    <button class="btn-back" id="btn-back" onclick="showHome()">← All Experiments</button>
+    <button class="btn-download" onclick="downloadPage()">⬇ Download Offline</button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════ HOME VIEW ══════════════════════════════ -->
+<div id="home-view">
+  <div class="hero">
+    <span class="hero-tag">TE · SEM V · PICT</span>
+    <h1>Digital Image<br><span>Processing</span> Lab</h1>
+    <p>9 experiments covering fundamental DIP concepts — theory, math, and Python code in one place.</p>
+  </div>
+
+  <div class="exp-grid">
+
+    <div class="exp-card" onclick="showExp(1)">
+      <div class="exp-num">EXP 01</div>
+      <h3>Basic Image Operations</h3>
+      <p>Read, display, resize, rotate images. Arithmetic operations, histogram computation, colour conversion, thresholding, and noise generation.</p>
+      <div class="exp-tags"><span class="tag">cv2.imread</span><span class="tag">histogram</span><span class="tag">threshold</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(2)">
+      <div class="exp-num">EXP 02</div>
+      <h3>Intensity Transformations</h3>
+      <p>Negation, logarithmic transform, power-law (gamma) correction, and image flipping — the core point-processing operations.</p>
+      <div class="exp-tags"><span class="tag">negation</span><span class="tag">log</span><span class="tag">gamma</span><span class="tag">flip</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(3)">
+      <div class="exp-num">EXP 03</div>
+      <h3>Spatial Transformations</h3>
+      <p>Gray-level slicing (with &amp; without background), bit-plane slicing to expose image structure, and piecewise linear contrast stretching.</p>
+      <div class="exp-tags"><span class="tag">gray slicing</span><span class="tag">bit-plane</span><span class="tag">contrast</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(4)">
+      <div class="exp-num">EXP 04</div>
+      <h3>Histogram Analysis &amp; Equalisation</h3>
+      <p>Manual histogram computation for dark, light, low &amp; high contrast images. Histogram equalisation via CDF mapping.</p>
+      <div class="exp-tags"><span class="tag">histogram</span><span class="tag">CDF</span><span class="tag">equalisation</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(5)">
+      <div class="exp-num">EXP 05</div>
+      <h3>Spatial Filtering</h3>
+      <p>Box, weighted-average, and median filters. Salt-and-pepper &amp; Gaussian noise. Custom min/max filters and impulse noise removal.</p>
+      <div class="exp-tags"><span class="tag">box filter</span><span class="tag">median</span><span class="tag">noise</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(6)">
+      <div class="exp-num">EXP 06</div>
+      <h3>Point, Line Detection &amp; Thresholding</h3>
+      <p>Laplacian-based point detection, 4-directional line detection masks, and iterative global thresholding algorithm.</p>
+      <div class="exp-tags"><span class="tag">laplacian</span><span class="tag">line detect</span><span class="tag">global thresh</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(7)">
+      <div class="exp-num">EXP 07</div>
+      <h3>Edge Detection Operators</h3>
+      <p>First-order derivative edge detectors — Roberts (2×2), Prewitt (3×3), and Sobel (3×3 with central weighting).</p>
+      <div class="exp-tags"><span class="tag">roberts</span><span class="tag">prewitt</span><span class="tag">sobel</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(8)">
+      <div class="exp-num">EXP 08</div>
+      <h3>DCT Image Compression</h3>
+      <p>Discrete Cosine Transform on 8×8 blocks — level shifting, forward DCT, JPEG Q50 quantisation, dequantisation, and IDCT.</p>
+      <div class="exp-tags"><span class="tag">DCT</span><span class="tag">quantisation</span><span class="tag">JPEG</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+    <div class="exp-card" onclick="showExp(9)">
+      <div class="exp-num">EXP 09</div>
+      <h3>Huffman Coding</h3>
+      <p>Lossless entropy encoding using min-heap tree construction. Compute entropy, average code length, efficiency, redundancy, and compression ratio.</p>
+      <div class="exp-tags"><span class="tag">huffman</span><span class="tag">entropy</span><span class="tag">lossless</span></div>
+      <span class="exp-arrow">↗</span>
+    </div>
+
+  </div>
+</div><!-- /#home-view -->
+
+<!-- ══════════════════════════════ DETAIL VIEW ══════════════════════════════ -->
+<div id="detail-view"></div>
+
+<script>
+/* ─────────────────────────── DATA ─────────────────────────── */
+const experiments = {
+
+1: {
+  num: 'EXP 01',
+  title: 'Basic Image Operations',
+  aim: 'Load and display images using OpenCV, perform geometric transforms (resize, rotate), apply arithmetic operations, compute histograms, convert colour spaces, apply simple thresholding, and generate synthetic noise.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p><strong>Image Representation:</strong> A digital image is a 2D matrix of pixel values. A grayscale image has one channel (0–255 per pixel); a colour image has three (BGR in OpenCV). Memory layout: <span class="highlight">rows × cols × channels</span>.</p>
+          <p><strong>Geometric Operations:</strong></p>
+          <ul>
+            <li><em>Resize</em> — <code>cv2.resize(img, (w, h))</code> scales the image using bilinear interpolation by default.</li>
+            <li><em>Rotate</em> — <code>cv2.rotate()</code> rotates by 90°/180°/270° without loss. Arbitrary angles require an affine warp matrix.</li>
+          </ul>
+          <p><strong>Arithmetic Operations:</strong> Pixel-wise addition, subtraction, AND, OR, XOR. Useful for blending, masking, and logical image composition. <code>cv2.add()</code> clips at 255 (saturated); NumPy <code>+</code> wraps around.</p>
+          <p><strong>Histogram:</strong> A plot of pixel intensity frequency. <code>cv2.calcHist([img], [channel], mask, [bins], [range])</code>. Shows tonal distribution — useful for contrast assessment.</p>
+          <p><strong>Colour Conversion:</strong> <code>cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)</code> converts to grayscale using the luminance formula:</p>
+          <div class="math-block">Y = 0.299·R + 0.587·G + 0.114·B</div>
+          <p><strong>Thresholding:</strong> Binary classification of pixels above/below a threshold T:</p>
+          <div class="math-block">g(x,y) = 255  if f(x,y) > T<br>g(x,y) = 0    otherwise</div>
+          <p><strong>Noise Generation:</strong> <code>cv2.randn(img, mean, stddev)</code> fills an array with Gaussian random values — used to simulate acquisition noise.</p>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> google.colab.patches <span class="kw">import</span> cv2_imshow
+<span class="kw">from</span> google.colab <span class="kw">import</span> drive
+
+drive.<span class="fn">mount</span>(<span class="str">'/content/drive'</span>)
+
+<span class="cm"># ── 1. Load & Display ──────────────────────────────────</span>
+image_path = <span class="str">"/content/drive/MyDrive/DIP_Images/DIP_IMAGES1/cameraman.bmp"</span>
+grey_scale = cv2.<span class="fn">imread</span>(image_path, cv2.IMREAD_GRAYSCALE)
+<span class="fn">cv2_imshow</span>(grey_scale)
+
+<span class="cm"># ── 2. Resize ──────────────────────────────────────────</span>
+img_resize = cv2.<span class="fn">resize</span>(grey_scale, (<span class="num">220</span>, <span class="num">220</span>))
+<span class="fn">cv2_imshow</span>(img_resize)
+
+<span class="cm"># ── 3. Rotate 90° Clockwise ───────────────────────────</span>
+rot_img = cv2.<span class="fn">rotate</span>(img_resize, cv2.ROTATE_90_CLOCKWISE)
+<span class="fn">cv2_imshow</span>(rot_img)
+
+<span class="cm"># ── 4. Arithmetic (Image Addition) ───────────────────</span>
+img1 = cv2.<span class="fn">imread</span>(<span class="str">"logic1.bmp"</span>, cv2.IMREAD_GRAYSCALE)
+img2 = cv2.<span class="fn">imread</span>(<span class="str">"logic2.bmp"</span>, cv2.IMREAD_GRAYSCALE)
+img_add = cv2.<span class="fn">add</span>(img1, img2)    <span class="cm"># saturated add</span>
+<span class="fn">cv2_imshow</span>(img_add)
+
+<span class="cm"># ── 5. Histogram Computation ─────────────────────────</span>
+hist_img = cv2.<span class="fn">imread</span>(<span class="str">"apple3.bmp"</span>)
+hist = cv2.<span class="fn">calcHist</span>([hist_img], [<span class="num">0</span>], <span class="kw">None</span>, [<span class="num">256</span>], [<span class="num">0</span>, <span class="num">256</span>])
+<span class="fn">print</span>(hist.<span class="fn">ravel</span>())
+
+<span class="cm"># ── 6. Colour Conversion BGR → Gray ──────────────────</span>
+rgb_img = cv2.<span class="fn">cvtColor</span>(hist_img, cv2.COLOR_BGR2GRAY)
+<span class="fn">cv2_imshow</span>(rgb_img)
+
+<span class="cm"># ── 7. Simple Threshold ───────────────────────────────</span>
+ret, thresh = cv2.<span class="fn">threshold</span>(grey_scale, <span class="num">127</span>, <span class="num">255</span>, cv2.THRESH_BINARY)
+<span class="fn">cv2_imshow</span>(thresh)
+
+<span class="cm"># ── 8. Add Gaussian Noise ────────────────────────────</span>
+noise = np.<span class="fn">zeros_like</span>(hist_img)
+cv2.<span class="fn">randn</span>(noise, <span class="num">128</span>, <span class="num">30</span>)    <span class="cm"># mean=128, std=30</span>
+<span class="fn">cv2_imshow</span>(noise)</code></pre>
+        </div>`
+    }
+  ]
+},
+
+2: {
+  num: 'EXP 02',
+  title: 'Intensity Transformations',
+  aim: 'Implement and demonstrate point-processing operations: image negation, logarithmic transform, power-law (gamma) correction, and geometric flipping.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p>Intensity transformation <strong>T</strong> maps each input pixel <strong>r</strong> to an output pixel <strong>s</strong>:</p>
+          <div class="math-block">s = T(r)</div>
+          <p><strong>1. Negation:</strong> Inverts the intensity scale. Useful for enhancing white or grey detail embedded in dark regions (e.g. mammograms):</p>
+          <div class="math-block">s = L − 1 − r  ≡  255 − r  (for 8-bit)</div>
+          <p><strong>2. Log Transform:</strong> Expands dark pixels, compresses bright pixels. Ideal for displaying Fourier spectra where magnitude ranges are huge:</p>
+          <div class="math-block">s = c · log(1 + r),  where  c = 255 / log(256) ≈ 45.99</div>
+          <p><strong>3. Power-Law (Gamma) Transform:</strong> A family of curves parameterised by γ. When γ &lt; 1 the output is brighter (expands dark tones); γ &gt; 1 makes it darker (expands bright tones). Used in monitor calibration and aerial imagery enhancement:</p>
+          <div class="math-block">s = c · r^γ  (normalised: s = 255 · (r/255)^γ)</div>
+          <table class="data-table">
+            <tr><th>γ value</th><th>Effect</th></tr>
+            <tr><td>0.1 – 0.4</td><td>Strong brightening</td></tr>
+            <tr><td>1.0</td><td>Identity (no change)</td></tr>
+            <tr><td>2.5 – 25</td><td>Progressive darkening</td></tr>
+          </table>
+          <p style="margin-top:0.8rem"><strong>4. Image Flipping:</strong> Reflection about a horizontal or vertical axis. <code>cv2.flip(img, 0)</code> = vertical; <code>cv2.flip(img, 1)</code> = horizontal.</p>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np, matplotlib.pyplot <span class="kw">as</span> plt, math
+
+<span class="cm"># ── 1. Negation ────────────────────────────────────────</span>
+img = cv2.<span class="fn">imread</span>(<span class="str">'Negation.bmp'</span>)
+neg = <span class="num">255</span> - img
+<span class="fn">show_pair</span>(img, neg, <span class="str">'Original'</span>, <span class="str">'Negative'</span>)
+
+<span class="cm"># ── 2. Log Transform ──────────────────────────────────</span>
+img2 = cv2.<span class="fn">imread</span>(<span class="str">'Log.bmp'</span>)
+img2_f = img2.<span class="fn">astype</span>(np.float64)
+c = <span class="num">255</span> / math.<span class="fn">log</span>(<span class="num">255</span>)
+logger = c * np.<span class="fn">log</span>(<span class="num">1</span> + img2_f)
+logger_u8 = np.<span class="fn">clip</span>(logger, <span class="num">0</span>, <span class="num">255</span>).<span class="fn">astype</span>(np.uint8)
+
+<span class="cm"># ── 3. Power Law / Gamma ──────────────────────────────</span>
+img3 = cv2.<span class="fn">imread</span>(<span class="str">'Power law.bmp'</span>)
+gammas = [<span class="num">0.1</span>, <span class="num">0.4</span>, <span class="num">1</span>, <span class="num">2.5</span>, <span class="num">5</span>, <span class="num">10</span>, <span class="num">25</span>]
+img_array = []
+<span class="kw">for</span> gamma <span class="kw">in</span> gammas:
+    img_power = <span class="num">255</span> * ((img3 / <span class="num">255</span>) ** gamma)
+    img_array.<span class="fn">append</span>(np.<span class="fn">clip</span>(img_power, <span class="num">0</span>, <span class="num">255</span>).<span class="fn">astype</span>(np.uint8))
+
+plt.<span class="fn">figure</span>(figsize=(<span class="num">20</span>, <span class="num">5</span>))
+<span class="kw">for</span> i, (arr, g) <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="fn">zip</span>(img_array, gammas)):
+    plt.<span class="fn">subplot</span>(<span class="num">1</span>, <span class="fn">len</span>(gammas), i+<span class="num">1</span>)
+    plt.<span class="fn">imshow</span>(cv2.<span class="fn">cvtColor</span>(arr, cv2.COLOR_BGR2RGB))
+    plt.<span class="fn">title</span>(<span class="fn">f</span><span class="str">'γ = {g}'</span>); plt.<span class="fn">axis</span>(<span class="str">'off'</span>)
+plt.<span class="fn">show</span>()
+
+<span class="cm"># ── 4. Flipping ───────────────────────────────────────</span>
+img4 = cv2.<span class="fn">imread</span>(<span class="str">'cameraman.bmp'</span>)
+img4_v = cv2.<span class="fn">flip</span>(img4, <span class="num">0</span>)   <span class="cm"># vertical flip</span>
+img4_h = cv2.<span class="fn">flip</span>(img4, <span class="num">1</span>)   <span class="cm"># horizontal flip</span></code></pre>
+        </div>`
+    }
+  ]
+},
+
+3: {
+  num: 'EXP 03',
+  title: 'Spatial Transformations',
+  aim: 'Apply gray-level slicing (with and without background preservation), bit-plane slicing to decompose image data, and piecewise linear contrast stretching.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p><strong>1. Gray-Level Slicing:</strong> Highlights a specific band of intensities [t1, t2].</p>
+          <ul>
+            <li><em>With background:</em> pixels in range → bright value (220); rest unchanged.</li>
+            <li><em>Without background:</em> pixels in range → bright value; rest → 0 (black).</li>
+          </ul>
+          <div class="math-block">s(x,y) = 220   if t1 &lt; f(x,y) &lt; t2<br>s(x,y) = f(x,y)  otherwise  (with bg)<br>s(x,y) = 0      otherwise  (without bg)</div>
+          <p><strong>2. Bit-Plane Slicing:</strong> Each 8-bit pixel is composed of 8 binary planes (bit 0 = LSB, bit 7 = MSB). The MSB planes (6 & 7) carry the bulk of visually significant information; lower planes contain fine detail and noise.</p>
+          <div class="math-block">plane_i[x,y] = 255  if  (f(x,y) &amp; (1 &lt;&lt; i)) ≠ 0<br>             = 0    otherwise</div>
+          <p><strong>3. Contrast Stretching (Piecewise Linear):</strong> A three-segment linear function maps input intensity ranges to expanded output ranges using control points (r1,s1) and (r2,s2):</p>
+          <div class="math-block">slope m1 = s1 / r1<br>slope m2 = (s2 − s1) / (r2 − r1)<br>slope m3 = (255 − s2) / (255 − r2)<br><br>s = m1·r                    if r &lt; r1<br>s = m2·(r − r1) + s1       if r1 ≤ r &lt; r2<br>s = m3·(r − r2) + s2       if r ≥ r2</div>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np
+<span class="kw">from</span> matplotlib <span class="kw">import</span> pyplot <span class="kw">as</span> plt, math
+
+<span class="cm"># ── 1. Gray-Level Slicing (with background) ───────────</span>
+img = cv2.<span class="fn">imread</span>(<span class="str">'Gray level slicing.bmp'</span>, cv2.IMREAD_GRAYSCALE)
+m, n = img.shape
+t1, t2 = <span class="num">0</span>, <span class="num">30</span>
+sliced = np.<span class="fn">zeros_like</span>(img)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">if</span>   img[i,j] &lt;= t1: sliced[i,j] = img[i,j]  <span class="cm"># keep</span>
+        <span class="kw">elif</span> img[i,j] &gt;= t2: sliced[i,j] = img[i,j]  <span class="cm"># keep</span>
+        <span class="kw">else</span>:                sliced[i,j] = <span class="num">220</span>         <span class="cm"># highlight</span>
+
+<span class="cm"># ── 2. Bit-Plane Slicing ──────────────────────────────</span>
+img = cv2.<span class="fn">imread</span>(<span class="str">'Bit plane slicing.bmp'</span>, cv2.IMREAD_GRAYSCALE)
+slices = []
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):
+    plane = np.<span class="fn">zeros_like</span>(img)
+    plane[img &amp; (<span class="num">1</span> &lt;&lt; i) != <span class="num">0</span>] = <span class="num">255</span>
+    slices.<span class="fn">append</span>(plane)
+
+<span class="cm"># ── 3. Contrast Stretching ────────────────────────────</span>
+img = cv2.<span class="fn">imread</span>(<span class="str">'hist7.bmp'</span>, cv2.IMREAD_GRAYSCALE)
+m, n = img.shape
+img_con = np.<span class="fn">zeros_like</span>(img)
+r1, r2, s1, s2 = <span class="num">100</span>, <span class="num">180</span>, <span class="num">50</span>, <span class="num">100</span>
+m1 = s1 / r1
+m2 = (s2 - s1) / (r2 - r1)
+m3 = (<span class="num">255</span> - s2) / (<span class="num">255</span> - r2)
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">if</span>   img[i,j] &lt; r1: img_con[i,j] = m1 * img[i,j]
+        <span class="kw">elif</span> img[i,j] &lt; r2: img_con[i,j] = m2 * (img[i,j] - r1) + s1
+        <span class="kw">else</span>:               img_con[i,j] = m3 * (img[i,j] - r2) + s2</code></pre>
+        </div>`
+    }
+  ]
+},
+
+4: {
+  num: 'EXP 04',
+  title: 'Histogram Analysis & Equalisation',
+  aim: 'Manually compute and plot histograms for dark, light, low-contrast, and high-contrast images. Implement histogram equalisation to redistribute intensity levels and improve contrast.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p><strong>Histogram:</strong> A discrete function h(r_k) = n_k where r_k is the k-th intensity and n_k is the number of pixels at that level. Dividing by total pixels gives the probability:</p>
+          <div class="math-block">p(r_k) = n_k / MN  (M×N = image dimensions)</div>
+          <p><strong>Histogram shapes by image type:</strong></p>
+          <table class="data-table">
+            <tr><th>Image Type</th><th>Histogram Shape</th></tr>
+            <tr><td>Dark</td><td>Concentrated at low intensities (left)</td></tr>
+            <tr><td>Light / Bright</td><td>Concentrated at high intensities (right)</td></tr>
+            <tr><td>Low contrast</td><td>Narrow band in the middle</td></tr>
+            <tr><td>High contrast</td><td>Wide, spread across full range</td></tr>
+          </table>
+          <p style="margin-top:0.8rem"><strong>Histogram Equalisation:</strong> Transforms pixel intensities so the output histogram is approximately uniform (flat). The transformation uses the Cumulative Distribution Function (CDF):</p>
+          <div class="math-block">CDF(r_k) = Σ_{j=0}^{k} p(r_j)<br><br>s_k = round( CDF(r_k) × (L−1) )  where L = 256</div>
+          <p>The mapping <strong>s_k</strong> is applied as a lookup table to every pixel. The result spreads tonal information across the full 0–255 range, enhancing global contrast.</p>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np, matplotlib.pyplot <span class="kw">as</span> plt
+
+<span class="cm"># ── Manual Histogram ──────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">plot_hist</span>(img_path, title):
+    img = cv2.<span class="fn">imread</span>(img_path)
+    hist_input = cv2.<span class="fn">cvtColor</span>(img, cv2.COLOR_BGR2GRAY) \
+                 <span class="kw">if</span> img.ndim == <span class="num">3</span> <span class="kw">else</span> img
+    frequency = [<span class="num">0</span>] * <span class="num">256</span>
+    <span class="kw">for</span> pv <span class="kw">in</span> hist_input.<span class="fn">ravel</span>():
+        frequency[pv] += <span class="num">1</span>
+    plt.<span class="fn">bar</span>(<span class="fn">range</span>(<span class="num">256</span>), frequency)
+    plt.<span class="fn">title</span>(title); plt.<span class="fn">xlabel</span>(<span class="str">'Gray Level'</span>); plt.<span class="fn">show</span>()
+
+<span class="fn">plot_hist</span>(<span class="str">'hist5.bmp'</span>, <span class="str">'Dark Image'</span>)
+<span class="fn">plot_hist</span>(<span class="str">'hist2.bmp'</span>, <span class="str">'Light Image'</span>)
+<span class="fn">plot_hist</span>(<span class="str">'hist4.bmp'</span>, <span class="str">'High Contrast'</span>)
+<span class="fn">plot_hist</span>(<span class="str">'hist1.bmp'</span>, <span class="str">'Low Contrast'</span>)
+
+<span class="cm"># ── Histogram Equalisation ────────────────────────────</span>
+img_low  = cv2.<span class="fn">imread</span>(<span class="str">'hist2.bmp'</span>)
+grey_img = cv2.<span class="fn">cvtColor</span>(img_low, cv2.COLOR_BGR2GRAY)
+freq     = [<span class="num">0</span>] * <span class="num">256</span>
+<span class="kw">for</span> pv <span class="kw">in</span> grey_img.<span class="fn">ravel</span>(): freq[pv] += <span class="num">1</span>
+
+total_pixels = <span class="fn">sum</span>(freq)
+prob         = [f / total_pixels <span class="kw">for</span> f <span class="kw">in</span> freq]
+cdf          = np.<span class="fn">cumsum</span>(prob)          <span class="cm"># CDF</span>
+cdf_scaled   = (cdf * <span class="num">255</span>).<span class="fn">astype</span>(np.uint8)  <span class="cm"># scale to [0,255]</span>
+
+<span class="cm"># Apply as lookup table (vectorised)</span>
+high_contrast_img = cdf_scaled[grey_img]
+<span class="fn">cv2_imshow</span>(high_contrast_img)</code></pre>
+        </div>`
+    }
+  ]
+},
+
+5: {
+  num: 'EXP 05',
+  title: 'Spatial Filtering',
+  aim: 'Apply smoothing filters (box, weighted average, median) to images. Generate salt-and-pepper and Gaussian noise. Compare performance of min, max, and median filters for noise removal.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p>Spatial filtering replaces each pixel with a function of its neighbourhood defined by a <strong>kernel</strong> (mask). Correlation is:</p>
+          <div class="math-block">g(x,y) = Σ_{s=−a}^{a} Σ_{t=−b}^{b} w(s,t)·f(x+s, y+t)</div>
+          <p><strong>1. Box (Mean) Filter:</strong> All kernel weights = 1/N² (uniform average). Blurs the image, reducing noise at the cost of sharpness. Larger kernels cause more blurring.</p>
+          <div class="math-block">K₃ₓ₃ = (1/9)·J₃ₓ₃   K₅ₓ₅ = (1/25)·J₅ₓ₅   K₇ₓ₇ = (1/49)·J₇ₓ₇</div>
+          <p><strong>2. Weighted Average Filter:</strong> Centre pixel weighted more — approximates Gaussian blur with a 3×3 kernel (sum = 16):</p>
+          <div class="math-block">W = (1/16) · [[1,2,1],[2,4,2],[1,2,1]]</div>
+          <p><strong>3. Median Filter:</strong> Replaces centre pixel with the <em>median</em> of the neighbourhood. Highly effective against salt-and-pepper noise; preserves edges better than mean filtering because it is non-linear (not affected by extreme outliers).</p>
+          <p><strong>Noise Types:</strong></p>
+          <ul>
+            <li><em>Salt-and-pepper:</em> Random pixels set to 0 or 255. Best removed by median filter.</li>
+            <li><em>Gaussian:</em> Additive zero-mean Gaussian random variable. Best removed by Gaussian/mean filters.</li>
+            <li><em>Impulse (random-valued):</em> Pixels replaced with random values (not necessarily 0 or 255).</li>
+          </ul>
+          <p><strong>Min / Max filters:</strong> Min filter (erosion-like) removes salt noise; Max filter (dilation-like) removes pepper noise.</p>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np, matplotlib.pyplot <span class="kw">as</span> plt
+
+img = cv2.<span class="fn">imread</span>(<span class="str">'Bit plane slicing.bmp'</span>)
+
+<span class="cm"># ── Box Filters ───────────────────────────────────────</span>
+box3 = np.<span class="fn">ones</span>((<span class="num">3</span>,<span class="num">3</span>)) / <span class="num">9</span>
+box5 = np.<span class="fn">ones</span>((<span class="num">5</span>,<span class="num">5</span>)) / <span class="num">25</span>
+box7 = np.<span class="fn">ones</span>((<span class="num">7</span>,<span class="num">7</span>)) / <span class="num">49</span>
+out3 = cv2.<span class="fn">filter2D</span>(img, -<span class="num">1</span>, box3)
+out5 = cv2.<span class="fn">filter2D</span>(img, -<span class="num">1</span>, box5)
+out7 = cv2.<span class="fn">filter2D</span>(img, -<span class="num">1</span>, box7)
+
+<span class="cm"># ── Weighted Average ──────────────────────────────────</span>
+w_avg = np.<span class="fn">array</span>([[<span class="num">1</span>,<span class="num">2</span>,<span class="num">1</span>],[<span class="num">2</span>,<span class="num">4</span>,<span class="num">2</span>],[<span class="num">1</span>,<span class="num">2</span>,<span class="num">1</span>]]) / <span class="num">16</span>
+wa_img = cv2.<span class="fn">filter2D</span>(img, -<span class="num">1</span>, w_avg)
+
+<span class="cm"># ── Median Filter ─────────────────────────────────────</span>
+median_img = cv2.<span class="fn">medianBlur</span>(img, <span class="num">5</span>)
+
+<span class="cm"># ── Add Salt & Pepper Noise ───────────────────────────</span>
+<span class="kw">def</span> <span class="fn">salt_pepper</span>(image, salt_vs_pepper=<span class="num">0.5</span>, amount=<span class="num">0.05</span>):
+    out = np.<span class="fn">copy</span>(image)
+    n_salt   = <span class="fn">int</span>(amount * image.size * salt_vs_pepper)
+    n_pepper = <span class="fn">int</span>(amount * image.size * (<span class="num">1</span> - salt_vs_pepper))
+    coords = [np.random.<span class="fn">randint</span>(<span class="num">0</span>, d-<span class="num">1</span>, n_salt) <span class="kw">for</span> d <span class="kw">in</span> image.shape]
+    out[coords[<span class="num">0</span>], coords[<span class="num">1</span>]] = <span class="num">255</span>
+    coords = [np.random.<span class="fn">randint</span>(<span class="num">0</span>, d-<span class="num">1</span>, n_pepper) <span class="kw">for</span> d <span class="kw">in</span> image.shape]
+    out[coords[<span class="num">0</span>], coords[<span class="num">1</span>]] = <span class="num">0</span>
+    <span class="kw">return</span> out
+
+<span class="cm"># ── Add Gaussian Noise ────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">gaussian_noise</span>(image, mean=<span class="num">0</span>, var=<span class="num">0.01</span>):
+    gauss = np.random.<span class="fn">normal</span>(mean, var**<span class="num">0.5</span>, image.shape)
+    noisy = np.<span class="fn">clip</span>(image.astype(np.float32) + gauss, <span class="num">0</span>, <span class="num">255</span>)
+    <span class="kw">return</span> noisy.<span class="fn">astype</span>(np.uint8)
+
+<span class="cm"># ── Custom Min / Max Filters ──────────────────────────</span>
+<span class="kw">def</span> <span class="fn">min_filter</span>(image, k=<span class="num">3</span>):
+    pad = k // <span class="num">2</span>
+    padded = np.<span class="fn">pad</span>(image, pad, mode=<span class="str">'constant'</span>, constant_values=<span class="num">255</span>)
+    out = np.<span class="fn">zeros_like</span>(image)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(image.shape[<span class="num">0</span>]):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(image.shape[<span class="num">1</span>]):
+            out[i,j] = np.<span class="fn">min</span>(padded[i:i+k, j:j+k])
+    <span class="kw">return</span> out</code></pre>
+        </div>`
+    }
+  ]
+},
+
+6: {
+  num: 'EXP 06',
+  title: 'Point, Line Detection & Global Thresholding',
+  aim: 'Detect isolated points using the Laplacian operator. Detect lines in four orientations using spatial masks. Implement iterative global thresholding for image segmentation.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p><strong>1. Point Detection (Laplacian):</strong> Second-order derivative operator. Responds maximally to isolated pixels whose intensity differs sharply from all neighbours. The 3×3 Laplacian kernel:</p>
+          <div class="math-block">L = [[1, 1, 1],<br>     [1,−8, 1],<br>     [1, 1, 1]]<br><br>Point detected where |R(x,y)| ≥ T</div>
+          <p><strong>2. Line Detection Masks:</strong> Specialised 3×3 kernels respond strongly to one-pixel-wide lines in four orientations. Maximum response at direction of interest:</p>
+          <table class="data-table">
+            <tr><th>Direction</th><th>Mask (centre row)</th></tr>
+            <tr><td>Horizontal</td><td>−1,−1,−1 / 2,2,2 / −1,−1,−1</td></tr>
+            <tr><td>Vertical</td><td>−1,2,−1 / −1,2,−1 / −1,2,−1</td></tr>
+            <tr><td>+45°</td><td>−1,−1,2 / −1,2,−1 / 2,−1,−1</td></tr>
+            <tr><td>−45°</td><td>2,−1,−1 / −1,2,−1 / −1,−1,2</td></tr>
+          </table>
+          <p style="margin-top:0.8rem"><strong>3. Global Thresholding (Iterative):</strong> Automatically finds the optimal threshold T*:</p>
+          <div class="math-block">1. T₀ = initial estimate (e.g. 125)<br>2. G1 = {f(x,y) > T},   G2 = {f(x,y) ≤ T}<br>3. m1 = mean(G1),   m2 = mean(G2)<br>4. T_new = (m1 + m2) / 2<br>5. if |T − T_new| &lt; ΔT → stop, else T ← T_new, goto 2</div>
+          <p>Converges rapidly (typically 1–5 iterations) to a threshold that separates object from background for bimodal histograms.</p>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np
+
+<span class="cm"># ── 1. Point Detection ────────────────────────────────</span>
+image = cv2.<span class="fn">imread</span>(<span class="str">'turbine_blade_black_dot.tif'</span>)
+gray  = cv2.<span class="fn">cvtColor</span>(image, cv2.COLOR_BGR2GRAY)
+
+kernel = np.<span class="fn">array</span>([[<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>],[<span class="num">1</span>,-<span class="num">8</span>,<span class="num">1</span>],[<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>]], dtype=np.float32)
+laplacian = cv2.<span class="fn">filter2D</span>(gray, cv2.CV_64F, kernel)
+abs_resp  = np.<span class="fn">abs</span>(laplacian)
+_, pts    = cv2.<span class="fn">threshold</span>(abs_resp, <span class="num">240</span>, <span class="num">255</span>, cv2.THRESH_BINARY)
+
+<span class="cm"># ── 2. Line Detection (4 orientations) ───────────────</span>
+image = cv2.<span class="fn">imread</span>(<span class="str">'wirebond_mask.tif'</span>)
+gray  = cv2.<span class="fn">cvtColor</span>(image, cv2.COLOR_BGR2GRAY)
+
+k_h   = np.<span class="fn">array</span>([[-<span class="num">1</span>,-<span class="num">1</span>,-<span class="num">1</span>],[ <span class="num">2</span>, <span class="num">2</span>, <span class="num">2</span>],[-<span class="num">1</span>,-<span class="num">1</span>,-<span class="num">1</span>]], np.float32)
+k_p45 = np.<span class="fn">array</span>([[-<span class="num">1</span>,-<span class="num">1</span>, <span class="num">2</span>],[-<span class="num">1</span>, <span class="num">2</span>,-<span class="num">1</span>],[ <span class="num">2</span>,-<span class="num">1</span>,-<span class="num">1</span>]], np.float32)
+k_v   = np.<span class="fn">array</span>([[-<span class="num">1</span>, <span class="num">2</span>,-<span class="num">1</span>],[-<span class="num">1</span>, <span class="num">2</span>,-<span class="num">1</span>],[-<span class="num">1</span>, <span class="num">2</span>,-<span class="num">1</span>]], np.float32)
+k_m45 = np.<span class="fn">array</span>([[ <span class="num">2</span>,-<span class="num">1</span>,-<span class="num">1</span>],[-<span class="num">1</span>, <span class="num">2</span>,-<span class="num">1</span>],[-<span class="num">1</span>,-<span class="num">1</span>, <span class="num">2</span>]], np.float32)
+
+T = <span class="num">50</span>
+<span class="kw">for</span> k <span class="kw">in</span> [k_h, k_p45, k_v, k_m45]:
+    resp = cv2.<span class="fn">filter2D</span>(gray, cv2.CV_64F, k)
+    norm = np.<span class="fn">uint8</span>(cv2.<span class="fn">normalize</span>(np.<span class="fn">abs</span>(resp), <span class="kw">None</span>, <span class="num">0</span>, <span class="num">255</span>, cv2.NORM_MINMAX))
+    _, out = cv2.<span class="fn">threshold</span>(norm, T, <span class="num">255</span>, cv2.THRESH_BINARY)
+
+<span class="cm"># ── 3. Iterative Global Thresholding ─────────────────</span>
+image = cv2.<span class="fn">imread</span>(<span class="str">'noisy_fingerprint.tif'</span>)
+gray  = cv2.<span class="fn">cvtColor</span>(image, cv2.COLOR_BGR2GRAY)
+T, delta_T = <span class="num">125</span>, <span class="num">1.0</span>
+<span class="kw">while</span> <span class="kw">True</span>:
+    G1, G2 = gray[gray > T], gray[gray &lt;= T]
+    m1 = np.<span class="fn">mean</span>(G1) <span class="kw">if</span> <span class="fn">len</span>(G1) > <span class="num">0</span> <span class="kw">else</span> <span class="num">0</span>
+    m2 = np.<span class="fn">mean</span>(G2) <span class="kw">if</span> <span class="fn">len</span>(G2) > <span class="num">0</span> <span class="kw">else</span> <span class="num">0</span>
+    T_new = (m1 + m2) / <span class="num">2</span>
+    <span class="kw">if</span> <span class="fn">abs</span>(T - T_new) &lt; delta_T: T = T_new; <span class="kw">break</span>
+    T = T_new
+_, seg = cv2.<span class="fn">threshold</span>(gray, <span class="fn">int</span>(T), <span class="num">255</span>, cv2.THRESH_BINARY)
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">'Converged at T = {int(T)}'</span>)</code></pre>
+        </div>`
+    }
+  ]
+},
+
+7: {
+  num: 'EXP 07',
+  title: 'Edge Detection Operators',
+  aim: 'Implement and compare three first-order derivative edge detectors: Roberts (2×2), Prewitt (3×3), and Sobel (3×3 with smoothing weight). Compute Gx, Gy, and the gradient magnitude.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p>An edge is a significant local change in intensity. Edges are found where the <strong>gradient magnitude</strong> is large:</p>
+          <div class="math-block">|∇f| = √(Gx² + Gy²)   ≈   |Gx| + |Gy|  (approximation)</div>
+          <p><strong>1. Roberts Operator (2×2):</strong> Simplest cross-gradient detector. No explicit centre pixel. Sensitive to diagonal edges but noisy:</p>
+          <div class="math-block">Gx = [[-1,0],[0,1]]     Gy = [[0,-1],[1,0]]</div>
+          <p><strong>2. Prewitt Operator (3×3):</strong> Uses larger neighbourhood for better noise immunity. Detects both horizontal and vertical edges. Approximates the derivative by differencing opposite rows/columns:</p>
+          <div class="math-block">Gx = [[-1,0,1],[-1,0,1],[-1,0,1]]<br>Gy = [[-1,-1,-1],[0,0,0],[1,1,1]]</div>
+          <p><strong>3. Sobel Operator (3×3):</strong> Like Prewitt but with a weight of 2 on the centre row/column — this provides Gaussian-like smoothing along the perpendicular direction, reducing noise sensitivity:</p>
+          <div class="math-block">Gx = [[-1,0,1],[-2,0,2],[-1,0,1]]<br>Gy = [[-1,-2,-1],[0,0,0],[1,2,1]]</div>
+          <table class="data-table">
+            <tr><th>Operator</th><th>Kernel</th><th>Noise</th><th>Edge Quality</th></tr>
+            <tr><td>Roberts</td><td>2×2</td><td>High sensitivity</td><td>Diagonal emphasis</td></tr>
+            <tr><td>Prewitt</td><td>3×3</td><td>Moderate</td><td>H & V balanced</td></tr>
+            <tr><td>Sobel</td><td>3×3</td><td>Low (smoothed)</td><td>Best overall</td></tr>
+          </table>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np
+
+image = cv2.<span class="fn">imread</span>(<span class="str">'building_original.tif'</span>)
+gray  = cv2.<span class="fn">cvtColor</span>(image, cv2.COLOR_BGR2GRAY)
+
+<span class="cm"># ── Utility ───────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">edge_detect</span>(gray, kx, ky):
+    Gx  = cv2.<span class="fn">filter2D</span>(gray, cv2.CV_64F, kx)
+    Gy  = cv2.<span class="fn">filter2D</span>(gray, cv2.CV_64F, ky)
+    mag = np.<span class="fn">sqrt</span>(Gx**<span class="num">2</span> + Gy**<span class="num">2</span>)
+    <span class="fn">norm</span> = <span class="kw">lambda</span> x: np.<span class="fn">uint8</span>(cv2.<span class="fn">normalize</span>(
+                       np.<span class="fn">abs</span>(x), <span class="kw">None</span>, <span class="num">0</span>, <span class="num">255</span>, cv2.NORM_MINMAX))
+    <span class="kw">return</span> <span class="fn">norm</span>(Gx), <span class="fn">norm</span>(Gy), <span class="fn">norm</span>(mag)
+
+<span class="cm"># ── 1. Roberts ────────────────────────────────────────</span>
+roberts_x = np.<span class="fn">array</span>([[-<span class="num">1</span>,<span class="num">0</span>],[<span class="num">0</span>,<span class="num">1</span>]],  dtype=np.float32)
+roberts_y = np.<span class="fn">array</span>([[<span class="num">0</span>,-<span class="num">1</span>],[<span class="num">1</span>,<span class="num">0</span>]],  dtype=np.float32)
+r_gx, r_gy, r_mag = <span class="fn">edge_detect</span>(gray, roberts_x, roberts_y)
+
+<span class="cm"># ── 2. Prewitt ────────────────────────────────────────</span>
+prewitt_x = np.<span class="fn">array</span>([[-<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>],[-<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>],[-<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>]], dtype=np.float32)
+prewitt_y = np.<span class="fn">array</span>([[-<span class="num">1</span>,-<span class="num">1</span>,-<span class="num">1</span>],[<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],[<span class="num">1</span>,<span class="num">1</span>,<span class="num">1</span>]], dtype=np.float32)
+p_gx, p_gy, p_mag = <span class="fn">edge_detect</span>(gray, prewitt_x, prewitt_y)
+
+<span class="cm"># ── 3. Sobel ──────────────────────────────────────────</span>
+sobel_x = np.<span class="fn">array</span>([[-<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>],[-<span class="num">2</span>,<span class="num">0</span>,<span class="num">2</span>],[-<span class="num">1</span>,<span class="num">0</span>,<span class="num">1</span>]], dtype=np.float32)
+sobel_y = np.<span class="fn">array</span>([[-<span class="num">1</span>,-<span class="num">2</span>,-<span class="num">1</span>],[<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>],[<span class="num">1</span>,<span class="num">2</span>,<span class="num">1</span>]], dtype=np.float32)
+s_gx, s_gy, s_mag = <span class="fn">edge_detect</span>(gray, sobel_x, sobel_y)</code></pre>
+        </div>`
+    }
+  ]
+},
+
+8: {
+  num: 'EXP 08',
+  title: 'DCT Image Compression',
+  aim: 'Implement JPEG-style DCT compression on an 8×8 pixel block and then extend it to a full image. Apply level shifting, forward DCT, JPEG Q50 quantisation, dequantisation, and inverse DCT.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p><strong>Discrete Cosine Transform (DCT):</strong> Transforms an 8×8 spatial block into 64 frequency coefficients. Low-frequency (top-left) coefficients carry most of the visual energy. JPEG exploits this by aggressively quantising high-frequency coefficients.</p>
+          <p><strong>Step-by-step pipeline for each 8×8 block:</strong></p>
+          <div class="math-block">1. Level Shift:      M = I − 128<br><br>2. Transform matrix T (8×8):<br>   T[0,j] = √(1/8)<br>   T[i,j] = √(2/8) · cos(((2j+1)·i·π) / 16)  for i ≥ 1<br><br>3. Forward DCT:      D = T · M · Tᵀ<br><br>4. Quantisation:     C = round(D / Q₅₀)<br><br>5. Dequantisation:   R = C × Q₅₀<br><br>6. Inverse DCT:      N = round(Tᵀ · R · T + 128)</div>
+          <p><strong>JPEG Luminance Quantisation Matrix Q50</strong> (standard 50% quality):</p>
+          <div class="math-block">[[16,11,10,16,24,40,51,61],<br> [12,12,14,19,26,58,60,55],<br> [14,13,16,24,40,57,69,56],<br> ...]</div>
+          <p>Small Q values in top-left preserve low-frequency detail; large Q values in bottom-right aggressively discard high-frequency noise/detail — achieving lossy compression.</p>
+          <p><strong>Full image:</strong> Divide into non-overlapping 8×8 blocks, process each independently, reconstruct by assembling blocks.</p>
+        </div>`
+    },
+    {
+      label: 'Code (8×8 Block)',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · NumPy</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+I_flat = np.<span class="fn">array</span>([<span class="num">154</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">136</span>,
+                    <span class="num">192</span>,<span class="num">180</span>,<span class="num">136</span>,<span class="num">154</span>,<span class="num">154</span>,<span class="num">154</span>,<span class="num">136</span>,<span class="num">110</span>,
+                    <span class="num">254</span>,<span class="num">198</span>,<span class="num">154</span>,<span class="num">154</span>,<span class="num">180</span>,<span class="num">154</span>,<span class="num">123</span>,<span class="num">123</span>,
+                    <span class="num">239</span>,<span class="num">180</span>,<span class="num">136</span>,<span class="num">180</span>,<span class="num">180</span>,<span class="num">166</span>,<span class="num">123</span>,<span class="num">123</span>,
+                    <span class="num">180</span>,<span class="num">154</span>,<span class="num">136</span>,<span class="num">167</span>,<span class="num">166</span>,<span class="num">149</span>,<span class="num">136</span>,<span class="num">136</span>,
+                    <span class="num">128</span>,<span class="num">136</span>,<span class="num">123</span>,<span class="num">136</span>,<span class="num">154</span>,<span class="num">180</span>,<span class="num">198</span>,<span class="num">154</span>,
+                    <span class="num">123</span>,<span class="num">105</span>,<span class="num">110</span>,<span class="num">149</span>,<span class="num">136</span>,<span class="num">136</span>,<span class="num">180</span>,<span class="num">166</span>,
+                    <span class="num">110</span>,<span class="num">136</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">123</span>,<span class="num">136</span>,<span class="num">154</span>,<span class="num">136</span>])
+I = I_flat.<span class="fn">reshape</span>((<span class="num">8</span>, <span class="num">8</span>))
+M = I - <span class="num">128</span>   <span class="cm"># level shift</span>
+
+<span class="cm"># Build DCT transform matrix T</span>
+T = np.<span class="fn">zeros</span>((<span class="num">8</span>, <span class="num">8</span>))
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):
+        T[i,j] = np.<span class="fn">sqrt</span>(<span class="num">1</span>/<span class="num">8</span>) <span class="kw">if</span> i==<span class="num">0</span> <span class="kw">else</span> \
+                 np.<span class="fn">sqrt</span>(<span class="num">2</span>/<span class="num">8</span>) * np.<span class="fn">cos</span>(((<span class="num">2</span>*j+<span class="num">1</span>)*i*np.pi)/<span class="num">16</span>)
+
+Q = np.<span class="fn">array</span>([[<span class="num">16</span>,<span class="num">11</span>,<span class="num">10</span>,<span class="num">16</span>,<span class="num">24</span>,<span class="num">40</span>,<span class="num">51</span>,<span class="num">61</span>],
+              [<span class="num">12</span>,<span class="num">12</span>,<span class="num">14</span>,<span class="num">19</span>,<span class="num">26</span>,<span class="num">58</span>,<span class="num">60</span>,<span class="num">55</span>],
+              [<span class="num">14</span>,<span class="num">13</span>,<span class="num">16</span>,<span class="num">24</span>,<span class="num">40</span>,<span class="num">57</span>,<span class="num">69</span>,<span class="num">56</span>],
+              [<span class="num">14</span>,<span class="num">17</span>,<span class="num">22</span>,<span class="num">29</span>,<span class="num">51</span>,<span class="num">87</span>,<span class="num">80</span>,<span class="num">62</span>],
+              [<span class="num">18</span>,<span class="num">22</span>,<span class="num">37</span>,<span class="num">56</span>,<span class="num">68</span>,<span class="num">109</span>,<span class="num">103</span>,<span class="num">77</span>],
+              [<span class="num">24</span>,<span class="num">35</span>,<span class="num">55</span>,<span class="num">64</span>,<span class="num">81</span>,<span class="num">104</span>,<span class="num">113</span>,<span class="num">92</span>],
+              [<span class="num">49</span>,<span class="num">64</span>,<span class="num">78</span>,<span class="num">87</span>,<span class="num">103</span>,<span class="num">121</span>,<span class="num">120</span>,<span class="num">101</span>],
+              [<span class="num">72</span>,<span class="num">92</span>,<span class="num">95</span>,<span class="num">98</span>,<span class="num">112</span>,<span class="num">100</span>,<span class="num">103</span>,<span class="num">99</span>]])
+
+D = np.<span class="fn">dot</span>(np.<span class="fn">dot</span>(T, M), T.T)           <span class="cm"># Forward DCT</span>
+C = np.<span class="fn">round</span>(D / Q)                      <span class="cm"># Quantise</span>
+R = Q * C                                  <span class="cm"># Dequantise</span>
+N = np.<span class="fn">round</span>(np.<span class="fn">dot</span>(np.<span class="fn">dot</span>(T.T, R), T) + <span class="num">128</span>)  <span class="cm"># IDCT + shift</span></code></pre>
+        </div>`
+    },
+    {
+      label: 'Code (Full Image)',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · NumPy + OpenCV</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> cv2, numpy <span class="kw">as</span> np
+
+img = cv2.<span class="fn">imread</span>(<span class="str">'cameraman.bmp'</span>, cv2.IMREAD_GRAYSCALE)
+h, w = img.shape
+h -= h % <span class="num">8</span>; w -= w % <span class="num">8</span>    <span class="cm"># crop to multiples of 8</span>
+img = img[:h, :w]
+img_f = np.<span class="fn">float32</span>(img)
+reconstructed = np.<span class="fn">zeros_like</span>(img_f)
+
+<span class="cm"># Build T matrix (same as before)</span>
+T = np.<span class="fn">zeros</span>((<span class="num">8</span>,<span class="num">8</span>))
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">8</span>):
+        T[i,j] = np.<span class="fn">sqrt</span>(<span class="num">1</span>/<span class="num">8</span>) <span class="kw">if</span> i==<span class="num">0</span> <span class="kw">else</span> \
+                 np.<span class="fn">sqrt</span>(<span class="num">2</span>/<span class="num">8</span>)*np.<span class="fn">cos</span>(((<span class="num">2</span>*j+<span class="num">1</span>)*i*np.pi)/<span class="num">16</span>)
+
+<span class="cm"># Q matrix (Q50) — same as above</span>
+<span class="cm"># Process every 8×8 block</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, h, <span class="num">8</span>):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, w, <span class="num">8</span>):
+        block = img_f[i:i+<span class="num">8</span>, j:j+<span class="num">8</span>]
+        M = block - <span class="num">128</span>
+        D = np.<span class="fn">dot</span>(np.<span class="fn">dot</span>(T, M), T.T)
+        C = np.<span class="fn">round</span>(D / Q)
+        R = C * Q
+        N = np.<span class="fn">dot</span>(np.<span class="fn">dot</span>(T.T, R), T) + <span class="num">128</span>
+        reconstructed[i:i+<span class="num">8</span>, j:j+<span class="num">8</span>] = np.<span class="fn">round</span>(N)
+
+reconstructed = np.<span class="fn">clip</span>(reconstructed, <span class="num">0</span>, <span class="num">255</span>).<span class="fn">astype</span>(np.uint8)</code></pre>
+        </div>`
+    }
+  ]
+},
+
+9: {
+  num: 'EXP 09',
+  title: 'Huffman Coding',
+  aim: 'Implement Huffman coding for lossless image compression. Build a min-heap priority tree from pixel frequency counts, extract variable-length codes, and compute entropy, average code length, efficiency, redundancy, and compression ratio.',
+  subsections: [
+    {
+      label: 'Theory',
+      content: `
+        <div class="theory-block">
+          <p><strong>Entropy (Shannon):</strong> The theoretical lower bound on average bits per symbol for a lossless code:</p>
+          <div class="math-block">H = −Σ p(rₖ) · log₂(p(rₖ))  bits/pixel</div>
+          <p><strong>Huffman Algorithm:</strong></p>
+          <ol style="padding-left:1.5rem; margin-bottom:0.8rem">
+            <li>Count pixel frequencies → build probability table.</li>
+            <li>Place all symbols as leaf nodes in a min-heap (priority queue keyed by frequency).</li>
+            <li>Repeatedly extract the two lowest-frequency nodes, merge into a parent node with combined frequency; push parent back.</li>
+            <li>Repeat until one node (root) remains → the Huffman tree.</li>
+            <li>Traverse tree: left branch = '0', right branch = '1'. Leaf nodes receive their path as their code.</li>
+          </ol>
+          <p><strong>Key properties:</strong> Frequent symbols get shorter codes, infrequent ones get longer — achieves near-optimal average code length.</p>
+          <div class="math-block">Lₐᵥg = Σ p(rₖ) · len(code(rₖ))<br><br>Efficiency  η = H / Lₐᵥg × 100%<br>Redundancy  ρ = 1 − (H / Lₐᵥg)<br>Compression ratio CR = (8 · N) / Σ freq(rₖ)·len(code(rₖ))</div>
+          <p><strong>Sample result from experiment:</strong></p>
+          <table class="data-table">
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Entropy H</td><td>2.9485 bits/pixel</td></tr>
+            <tr><td>Average Code Length L</td><td>2.9688 bits/pixel</td></tr>
+            <tr><td>Coding Efficiency</td><td>99.32 %</td></tr>
+            <tr><td>Redundancy</td><td>0.0068</td></tr>
+            <tr><td>Original Size</td><td>512 bits (64 px × 8)</td></tr>
+            <tr><td>Compressed Size</td><td>190 bits</td></tr>
+            <tr><td>Compression Ratio</td><td>2.69 : 1</td></tr>
+          </table>
+        </div>`
+    },
+    {
+      label: 'Code',
+      content: `
+        <div class="code-wrapper">
+          <div class="code-header">
+            <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+            <span class="code-lang">PYTHON · heapq</span>
+            <button class="code-copy" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np, heapq, math
+<span class="kw">from</span> collections <span class="kw">import</span> Counter
+
+<span class="cm"># ── Huffman Tree Node ─────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">Node</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, freq, symbol=<span class="kw">None</span>, left=<span class="kw">None</span>, right=<span class="kw">None</span>):
+        self.freq = freq; self.symbol = symbol
+        self.left = left; self.right = right
+        self.huff_code = <span class="str">''</span>
+    <span class="kw">def</span> <span class="fn">__lt__</span>(self, other): <span class="kw">return</span> self.freq &lt; other.freq
+
+<span class="cm"># ── Extract codes via tree traversal ─────────────────</span>
+<span class="kw">def</span> <span class="fn">get_codes</span>(node, code=<span class="str">""</span>, table=<span class="kw">None</span>):
+    <span class="kw">if</span> table <span class="kw">is</span> <span class="kw">None</span>: table = {}
+    new_code = code + <span class="fn">str</span>(node.huff_code)
+    <span class="kw">if</span> node.left:  <span class="fn">get_codes</span>(node.left,  new_code, table)
+    <span class="kw">if</span> node.right: <span class="fn">get_codes</span>(node.right, new_code, table)
+    <span class="kw">if not</span> node.left <span class="kw">and not</span> node.right:
+        table[node.symbol] = new_code
+    <span class="kw">return</span> table
+
+<span class="cm"># ── Main ──────────────────────────────────────────────</span>
+np.random.<span class="fn">seed</span>(<span class="num">0</span>)
+img   = np.random.<span class="fn">randint</span>(<span class="num">0</span>, <span class="num">8</span>, size=(<span class="num">8</span>,<span class="num">8</span>), dtype=np.uint8)
+pixels     = img.<span class="fn">flatten</span>()
+freq_dict  = <span class="fn">dict</span>(<span class="fn">Counter</span>(pixels))
+total_px   = <span class="fn">len</span>(pixels)
+
+<span class="cm"># Build min-heap</span>
+heap = [<span class="fn">Node</span>(f, s) <span class="kw">for</span> s, f <span class="kw">in</span> freq_dict.<span class="fn">items</span>()]
+heapq.<span class="fn">heapify</span>(heap)
+
+<span class="cm"># Build Huffman tree</span>
+<span class="kw">while</span> <span class="fn">len</span>(heap) > <span class="num">1</span>:
+    left  = heapq.<span class="fn">heappop</span>(heap)
+    right = heapq.<span class="fn">heappop</span>(heap)
+    left.huff_code = <span class="str">'0'</span>; right.huff_code = <span class="str">'1'</span>
+    parent = <span class="fn">Node</span>(left.freq + right.freq, left=left, right=right)
+    heapq.<span class="fn">heappush</span>(heap, parent)
+
+huffman_codes = <span class="fn">get_codes</span>(heap[<span class="num">0</span>])
+
+<span class="cm"># ── Metrics ───────────────────────────────────────────</span>
+prob  = {s: f/total_px <span class="kw">for</span> s, f <span class="kw">in</span> freq_dict.<span class="fn">items</span>()}
+L_avg = <span class="fn">sum</span>(prob[s] * <span class="fn">len</span>(c) <span class="kw">for</span> s, c <span class="kw">in</span> huffman_codes.<span class="fn">items</span>())
+H     = <span class="fn">sum</span>(-p * math.<span class="fn">log2</span>(p) <span class="kw">for</span> p <span class="kw">in</span> prob.<span class="fn">values</span>())
+CR    = (total_px*<span class="num">8</span>) / <span class="fn">sum</span>(freq_dict[s]*<span class="fn">len</span>(c)
+         <span class="kw">for</span> s, c <span class="kw">in</span> huffman_codes.<span class="fn">items</span>())
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"H={H:.4f}  L={L_avg:.4f}  η={H/L_avg*100:.2f}%  CR={CR:.2f}:1"</span>)</code></pre>
+        </div>`
+    }
+  ]
+}
+
+}; /* end experiments */
+
+/* ─────────────────────────── NAVIGATION ─────────────────────────── */
+function showHome() {
+  document.getElementById('home-view').style.display = 'block';
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('btn-back').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showExp(num) {
+  const exp = experiments[num];
+  if (!exp) return;
+
+  const tabButtons = exp.subsections.map((s, i) =>
+    `<button class="sub-tab ${i===0?'active':''}" onclick="switchTab(this, ${i})">${s.label}</button>`
+  ).join('');
+
+  const tabContents = exp.subsections.map((s, i) =>
+    `<div class="sub-content ${i===0?'active':''}">${s.content}</div>`
+  ).join('');
+
+  document.getElementById('detail-view').innerHTML = `
+    <div class="detail-animate">
+      <div class="detail-header">
+        <div class="detail-num">${exp.num}</div>
+        <h2>${exp.title}</h2>
+        <p><strong>Aim:</strong> ${exp.aim}</p>
+      </div>
+      <div class="section">
+        <div class="sub-tabs">${tabButtons}</div>
+        ${tabContents}
+      </div>
+    </div>`;
+
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'block';
+  document.getElementById('btn-back').style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchTab(btn, idx) {
+  const detail = document.getElementById('detail-view');
+  detail.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  detail.querySelectorAll('.sub-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  detail.querySelectorAll('.sub-content')[idx].classList.add('active');
+}
+
+/* ─────────────────────────── COPY CODE ─────────────────────────── */
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrapper').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1800);
+  });
+}
+
+/* ─────────────────────────── DOWNLOAD ─────────────────────────── */
+function downloadPage() {
+  const html = '<!DOCTYPE html>' + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dip_lab_offline.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+
+
+</body></html>
